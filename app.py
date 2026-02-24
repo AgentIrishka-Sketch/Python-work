@@ -2,7 +2,7 @@ import streamlit as st
 import numpy as np
 import plotly.graph_objects as go
 
-st.title("Моё портфолио Python")
+st.title("My first project in Pyhton")
 
 freq = st.slider("Частота", 1, 10, 3)
 
