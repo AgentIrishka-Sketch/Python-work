@@ -1,48 +1,73 @@
 import streamlit as st
-import numpy as np
-import plotly.graph_objects as go
+import streamlit.components.v1 as components
 
-st.title("Интерактивная спиральная галактика 🌌")
+st.title("Интерактивные частицы, реагирующие на мышь 🖱️✨")
 
-# Параметры
-num_particles = st.slider("Количество звезд", 100, 2000, 500)
-arms = st.slider("Количество спиральных ветвей", 1, 5, 2)
-rotation = st.slider("Сила вращения", 0.1, 2.0, 1.0)
-spread = st.slider("Разброс звезд", 0.01, 0.5, 0.2)
+html_code = """
+<!DOCTYPE html>
+<html>
+<head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+</head>
+<body style="margin:0; overflow:hidden; background:black;">
+<script>
 
-# Генерация частиц
-theta = np.random.rand(num_particles) * 2 * np.pi
-r = np.random.rand(num_particles)**0.5  # плотность ближе к центру
-branch_angle = (theta % (2*np.pi/arms))  # угол для ветви
+let particles = [];
 
-# смещение ветви
-r += branch_angle * spread
-x = r * np.cos(theta) * rotation
-y = r * np.sin(theta) * rotation
+class Particle {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.vx = random(-1, 1);
+    this.vy = random(-1, 1);
+  }
 
-# цвет в зависимости от радиуса
-color = np.sqrt(x**2 + y**2)
+  update() {
 
-# график
-fig = go.Figure()
+    let dx = mouseX - this.x;
+    let dy = mouseY - this.y;
+    let dist = sqrt(dx*dx + dy*dy);
 
-fig.add_scatter(
-    x=x, y=y,
-    mode="markers",
-    marker=dict(
-        size=4,
-        color=color,
-        colorscale="turbo",
-        showscale=False,
-        opacity=0.8
-    )
-)
+    if (dist < 150) {
+      this.vx += dx * 0.0005;
+      this.vy += dy * 0.0005;
+    }
 
-fig.update_layout(
-    xaxis=dict(showgrid=False, visible=False),
-    yaxis=dict(showgrid=False, visible=False),
-    height=600,
-    margin=dict(l=0,r=0,t=40,b=0)
-)
+    this.x += this.vx;
+    this.y += this.vy;
 
-st.plotly_chart(fig, use_container_width=True)
+    this.vx *= 0.98;
+    this.vy *= 0.98;
+  }
+
+  draw() {
+    noStroke();
+    fill(0, 200, 255);
+    circle(this.x, this.y, 4);
+  }
+}
+
+function setup() {
+  let canvas = createCanvas(window.innerWidth, 500);
+  canvas.parent(document.body);
+
+  for (let i = 0; i < 300; i++) {
+    particles.push(new Particle(random(width), random(height)));
+  }
+}
+
+function draw() {
+  background(0, 40);
+
+  for (let p of particles) {
+    p.update();
+    p.draw();
+  }
+}
+
+</script>
+</body>
+</html>
+"""
+
+components.html(html_code, height=500)
