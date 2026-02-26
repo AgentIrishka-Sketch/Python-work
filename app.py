@@ -1,47 +1,46 @@
 import streamlit as st
 import numpy as np
-import plotly.express as px
+import plotly.graph_objects as go
 
-st.title("Фрактал Мандельброта 🌌")
+st.title("Интерактивная симуляция частиц ✨")
 
-# интерактивные параметры
-max_iter = st.slider("Количество итераций", 50, 500, 150)
-zoom = st.slider("Zoom", 1, 10, 1)
-x_center = st.slider("Смещение X", -2.0, 1.0, -0.5, step=0.01)
-y_center = st.slider("Смещение Y", -1.5, 1.5, 0.0, step=0.01)
+# параметры
+num_particles = st.slider("Количество частиц", 10, 500, 100)
+speed = st.slider("Скорость движения", 0.01, 0.2, 0.05)
 
-# размер изображения
-width = 400
-height = 400
+# начальные позиции
+x = np.random.rand(num_particles)
+y = np.random.rand(num_particles)
 
-# диапазон координат
-x_width = 3.5 / zoom
-y_height = 3.0 / zoom
+# случайное движение
+angle = np.random.rand(num_particles) * 2 * np.pi
+x = x + np.cos(angle) * speed
+y = y + np.sin(angle) * speed
 
-x = np.linspace(x_center - x_width/2, x_center + x_width/2, width)
-y = np.linspace(y_center - y_height/2, y_center + y_height/2, height)
+# ограничение границ
+x = np.clip(x, 0, 1)
+y = np.clip(y, 0, 1)
 
-X, Y = np.meshgrid(x, y)
-C = X + 1j * Y
-Z = np.zeros_like(C)
-mandelbrot = np.zeros(C.shape)
+# график
+fig = go.Figure()
 
-# вычисление фрактала
-for i in range(max_iter):
-    mask = np.abs(Z) <= 2
-    Z[mask] = Z[mask]**2 + C[mask]
-    mandelbrot[mask] = i
-
-# отображение
-fig = px.imshow(
-    mandelbrot,
-    color_continuous_scale="turbo",
-    origin="lower"
+fig.add_scatter(
+    x=x,
+    y=y,
+    mode="markers",
+    marker=dict(
+        size=8,
+        color=np.sqrt(x*y),
+        colorscale="plasma",
+        showscale=True
+    )
 )
 
 fig.update_layout(
-    xaxis_showticklabels=False,
-    yaxis_showticklabels=False
+    title="Движение частиц",
+    xaxis=dict(range=[0,1]),
+    yaxis=dict(range=[0,1]),
+    height=600
 )
 
 st.plotly_chart(fig, use_container_width=True)
