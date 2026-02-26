@@ -1,46 +1,43 @@
-import streamlit as st
-import numpy as np
-import plotly.graph_objects as go
+from p5 import *
 
-st.title("Интерактивная симуляция частиц ✨")
+particles = []
 
-# параметры
-num_particles = st.slider("Количество частиц", 10, 500, 100)
-speed = st.slider("Скорость движения", 0.01, 0.2, 0.05)
+class Particle:
+    def __init__(self):
+        self.x = random_uniform(0, width)
+        self.y = random_uniform(0, height)
+        self.vx = 0
+        self.vy = 0
 
-# начальные позиции
-x = np.random.rand(num_particles)
-y = np.random.rand(num_particles)
+    def update(self):
+        dx = mouse_x - self.x
+        dy = mouse_y - self.y
+        
+        self.vx += dx * 0.001
+        self.vy += dy * 0.001
+        
+        self.vx *= 0.95
+        self.vy *= 0.95
+        
+        self.x += self.vx
+        self.y += self.vy
 
-# случайное движение
-angle = np.random.rand(num_particles) * 2 * np.pi
-x = x + np.cos(angle) * speed
-y = y + np.sin(angle) * speed
+    def draw(self):
+        circle((self.x, self.y), 5)
 
-# ограничение границ
-x = np.clip(x, 0, 1)
-y = np.clip(y, 0, 1)
+def setup():
+    size(600, 600)
+    for _ in range(200):
+        particles.append(Particle())
 
-# график
-fig = go.Figure()
+def draw():
+    background(10, 10, 30)
+    
+    fill(0, 200, 255)
+    no_stroke()
+    
+    for p in particles:
+        p.update()
+        p.draw()
 
-fig.add_scatter(
-    x=x,
-    y=y,
-    mode="markers",
-    marker=dict(
-        size=8,
-        color=np.sqrt(x*y),
-        colorscale="plasma",
-        showscale=True
-    )
-)
-
-fig.update_layout(
-    title="Движение частиц",
-    xaxis=dict(range=[0,1]),
-    yaxis=dict(range=[0,1]),
-    height=600
-)
-
-st.plotly_chart(fig, use_container_width=True)
+run()
