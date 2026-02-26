@@ -1,43 +1,48 @@
-from p5 import *
+import streamlit as st
+import numpy as np
+import plotly.graph_objects as go
 
-particles = []
+st.title("Интерактивная спиральная галактика 🌌")
 
-class Particle:
-    def __init__(self):
-        self.x = random_uniform(0, width)
-        self.y = random_uniform(0, height)
-        self.vx = 0
-        self.vy = 0
+# Параметры
+num_particles = st.slider("Количество звезд", 100, 2000, 500)
+arms = st.slider("Количество спиральных ветвей", 1, 5, 2)
+rotation = st.slider("Сила вращения", 0.1, 2.0, 1.0)
+spread = st.slider("Разброс звезд", 0.01, 0.5, 0.2)
 
-    def update(self):
-        dx = mouse_x - self.x
-        dy = mouse_y - self.y
-        
-        self.vx += dx * 0.001
-        self.vy += dy * 0.001
-        
-        self.vx *= 0.95
-        self.vy *= 0.95
-        
-        self.x += self.vx
-        self.y += self.vy
+# Генерация частиц
+theta = np.random.rand(num_particles) * 2 * np.pi
+r = np.random.rand(num_particles)**0.5  # плотность ближе к центру
+branch_angle = (theta % (2*np.pi/arms))  # угол для ветви
 
-    def draw(self):
-        circle((self.x, self.y), 5)
+# смещение ветви
+r += branch_angle * spread
+x = r * np.cos(theta) * rotation
+y = r * np.sin(theta) * rotation
 
-def setup():
-    size(600, 600)
-    for _ in range(200):
-        particles.append(Particle())
+# цвет в зависимости от радиуса
+color = np.sqrt(x**2 + y**2)
 
-def draw():
-    background(10, 10, 30)
-    
-    fill(0, 200, 255)
-    no_stroke()
-    
-    for p in particles:
-        p.update()
-        p.draw()
+# график
+fig = go.Figure()
 
-run()
+fig.add_scatter(
+    x=x, y=y,
+    mode="markers",
+    marker=dict(
+        size=4,
+        color=color,
+        colorscale="turbo",
+        showscale=False,
+        opacity=0.8
+    )
+)
+
+fig.update_layout(
+    xaxis=dict(showgrid=False, visible=False),
+    yaxis=dict(showgrid=False, visible=False),
+    height=600,
+    margin=dict(l=0,r=0,t=40,b=0)
+)
+
+st.plotly_chart(fig, use_container_width=True)
